@@ -1,5 +1,4 @@
 namespace SharedLibrary.Attributes;
-
 public enum RecordStatus
 {
     ARCHIVED = 0,

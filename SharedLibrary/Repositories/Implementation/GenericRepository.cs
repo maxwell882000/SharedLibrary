@@ -3,11 +3,14 @@ using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 using System.Text.Json;
 using SharedLibrary.Repositories.Interfaces;
+using SharedLibrary.Helpers;
+using SharedLibrary.Attributes;
+using AutoMapper;
 
 namespace SharedLibrary.Repositories.Implementation
 {
     public class GenericRepository<Context, T> : IGenericRepository<T>
-        where T : class
+        where T : class, IEntity
         where Context : DbContext
     {
         protected readonly Context _context;
@@ -21,7 +24,6 @@ namespace SharedLibrary.Repositories.Implementation
 
         T IGenericRepository<T>.Update(T entity)
         {
-
             return _context.Set<T>().Update(entity).Entity;
         }
 
@@ -109,6 +111,34 @@ namespace SharedLibrary.Repositories.Implementation
             _context.Set<T>().UpdateRange(entity);
         }
 
-   
+        public (IQueryable<T>, int) Paginated(int page = 1, int take = 8, Func<DbSet<T>, IQueryable<T>> query = default)
+        {
+            var pagination = new Pagination<T>(
+                query(this._context.Set<T>()),
+                page,
+                10);
+            return pagination.paginate();
+        }
+
+        public T Add<Create>(IMapper mapper, Create create)
+        {
+            T entity = mapper.Map<T>(create);
+            this._context.Add<T>(entity);
+            this._context.SaveChanges();
+            return entity;
+        }
+
+        public T Update<Update>(IMapper mapper, Update update) where Update : IPrimary
+        {
+            var entity = _context.Set<T>().First(e => e.Id == update.Id);
+            if (entity != null)
+            {
+                mapper.Map<Update, T>(update, entity);
+                _context.Update<T>(entity);
+
+                return entity;
+            }
+            throw new Exception("NOT FOUND");
+        }
     }
 }

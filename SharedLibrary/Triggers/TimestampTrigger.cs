@@ -7,11 +7,11 @@ namespace SharedLibrary.Triggers
     {
         public Task BeforeSave(ITriggerContext<ITimestamp> context, CancellationToken cancellationToken)
         {
-            if (context.ChangeType == ChangeType.Added || context.ChangeType == ChangeType.Modified)
+            if (context.ChangeType == ChangeType.Added)
             {
                 context.Entity.CreatedAt = DateTime.UtcNow;
             }
-            if (context.ChangeType == ChangeType.Added)
+            if (context.ChangeType == ChangeType.Added || context.ChangeType == ChangeType.Modified)
             {
                 context.Entity.UpdatedAt = DateTime.UtcNow;
             }

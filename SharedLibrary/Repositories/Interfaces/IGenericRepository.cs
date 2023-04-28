@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using SharedLibrary.Attributes;
 using System.Linq.Expressions;
 
 namespace SharedLibrary.Repositories.Interfaces
@@ -8,8 +10,15 @@ namespace SharedLibrary.Repositories.Interfaces
 
         T Update(T entity);
         void Update(IEnumerable<T> entity);
+
+        T Add<Create>(IMapper mapper, Create create);
+        T Update<Update>(IMapper mapper, Update update) where Update : IPrimary;
+
         T GetById(long id);
-        abstract DbSet<T> GetAll();
+        DbSet<T> GetAll();
+
+        (IQueryable<T>, int) Paginated(int page = 1, int take = 8, Func<DbSet<T>, IQueryable<T>> query = default);
+
         IEnumerable<T> Find(Expression<Func<T, bool>> expression);
         T Add(T entity);
         void AddRange(IEnumerable<T> entities);

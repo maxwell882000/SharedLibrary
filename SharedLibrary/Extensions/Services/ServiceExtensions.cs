@@ -15,13 +15,15 @@ public static class ServiceExtensions
     public static IServiceCollection AddPostgreSQL<T>(this IServiceCollection Services, IConfiguration Configuration) where T : DbContext
     {
 
+
+
         Services.AddDbContext<T>(t =>
             {
-
-                t.UseNpgsql(Configuration.GetValue<String>("DB:Postgres"));
+                t.UseNpgsql(Configuration.GetValue<String>("DB:Postgres"), o => o.UseNetTopologySuite());
                 t.UseTriggers(triggers =>
                 {
                     triggers.AddTrigger<TimestampTrigger>();
+                    triggers.AddTrigger<OwnershipTrigger>();
                 });
             });
         return Services;

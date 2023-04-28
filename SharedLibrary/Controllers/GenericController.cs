@@ -11,72 +11,74 @@ namespace SharedLibrary.Controllers
 {
     [Route("apiv2/[controller]")]
     [ApiController]
-    public class GenericController<Repository, Entity, DTO> : ControllerBase
+    public abstract class GenericController<Repository,
+        Entity,
+        CreateEntity,
+        UpdateEntity> : ControllerBase
+        where Entity : class, IEntity
         where Repository : IGenericRepository<Entity>
-        where Entity : class
-        where DTO : IEntity
+        where CreateEntity : class
+        where UpdateEntity : IPrimary
     {
         protected Repository _repository;
         protected IMapper _mapper;
-        protected UpdateOrCreateAction<Entity, DTO> updateOrCreate;
 
         public GenericController(Repository repository, IMapper mapper)
         {
             this._repository = repository;
             this._mapper = mapper;
-            this.updateOrCreate = new UpdateOrCreateAction<Entity, DTO>(mapper, repository);
         }
 
-        // GET: api/<QuestionTemplateController>
-        [HttpGet("all")]
-        public virtual IActionResult GetAll()
-        {
-            return Ok(this._repository.GetAll());
-        }
-
-        // GET: api/<QuestionTemplateController>
         [HttpGet]
-        public virtual IActionResult Get()
+        public IActionResult Index(int page = 1, int take = 8)
         {
-            return Ok(_mapper.ProjectTo<DTO>(this._repository.GetAll()).ToList());
+            (IQueryable<Entity> Entity, int TotalPage) = _repository.Paginated(page, take);
+            return Ok(new { Entity, TotalPage });
         }
 
-        // GET api/<QuestionTemplateController>/5
-        [HttpGet("{id}")]
-        public virtual IActionResult Get(long id)
+        [HttpGet("{Id}")]
+        public IActionResult Index(long Id)
         {
-            var entity = this._repository.GetById(id);
-
-            return Ok(_mapper.Map<DTO>(entity));
+            return Ok(_repository.GetById(Id));
         }
 
-        // POST api/<QuestionTemplateController>
-        [HttpPost]
-        public virtual IActionResult Post(DTO value)
+        [HttpPost("Create")]
+        public async Task<IActionResult> Add(CreateEntity createUser)
         {
-            var _value = _mapper.Map<Entity>(value);
-            this._repository.SaveCommit(() => this._repository.Add(_value));
-            //this._repository.commit();
-            return Ok(_mapper.Map<DTO>(_value));
+
+            return Ok(await Creating(createUser));
+        }
+        virtual protected Task<Entity> Creating(CreateEntity create)
+        {
+            return Task.FromResult(_repository.Add<CreateEntity>(_mapper, create));
+        }
+        virtual protected Task<Entity> Updating(UpdateEntity update)
+        {
+            return Task.FromResult(_repository.Update<UpdateEntity>(_mapper, update));
         }
 
-        [HttpPut]
-        public virtual IActionResult Put([FromBody] DTO value)
+
+        [HttpPut("Update")]
+        public async Task<IActionResult> Update(UpdateEntity updateUser)
         {
-            Debug.WriteLine(value.ToString());
-            Entity entity = this._repository.GetById(value.Id);
-            _mapper.Map<DTO, Entity>(value, entity);
-            this._repository.SaveCommit(() => this._repository.Update(entity));
-            //this._repository.commit();
+            try
+            {
+                return Ok(await Updating(updateUser));
+            }
+            catch (Exception exception)
+            {
+                return NotFound();
+            }
+
+        }
+
+        [HttpDelete("{Id}")]
+        public IActionResult Delete(Entity entity)
+        {
+            _repository.Remove(entity);
+
             return Ok();
         }
 
-        // DELETE api/<QuestionTemplateController>/5
-        [HttpDelete("{id}")]
-        public virtual void Delete(long id)
-        {
-            this._repository.Remove(this._repository.GetById(id));
-            this._repository.Commit();
-        }
     }
 }

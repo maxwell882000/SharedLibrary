@@ -1,11 +1,12 @@
 ﻿using System;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SharedLibrary.Attributes;
 using SharedLibrary.Repositories.Interfaces;
 
 namespace SharedLibrary.Repositories.Actions
 {
-    public class UpdateOrCreateAction<Model, DTO> where Model : class
+    public class UpdateOrCreateAction<Model, DTO> where Model : class, IEntity
     {
         private IGenericRepository<Model> repository;
         private IMapper mapper;
@@ -15,7 +16,7 @@ namespace SharedLibrary.Repositories.Actions
             this.mapper = mapper;
         }
 
-        public Model updateOrCreate(DTO dto, Func<DbSet<Model>, IQueryable<Model>> func)
+        public Model UpdateOrCreate(DTO dto, Func<DbSet<Model>, IQueryable<Model>> func)
         {
             try
             {
