@@ -9,7 +9,7 @@ namespace SharedLibrary.Extensions
             while (true)
             {
                 var uuid = Guid.NewGuid();
-                if (!enity.Where(e => e.UUID == uuid).Any())
+                if (!enity.Where(e => e.Uuid == uuid).Any())
                 {
                     return uuid;
                 }

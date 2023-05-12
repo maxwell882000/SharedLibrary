@@ -111,12 +111,12 @@ namespace SharedLibrary.Repositories.Implementation
             _context.Set<T>().UpdateRange(entity);
         }
 
-        public (IQueryable<T>, int) Paginated(int page = 1, int take = 8, Func<DbSet<T>, IQueryable<T>> query = default)
+        public (IQueryable<T>, int) Paginated(int page = 1, int take = 8, Func<DbSet<T>, IQueryable<T>>? query = null)
         {
             var pagination = new Pagination<T>(
-                query(this._context.Set<T>()),
+                query != null ? query(this._context.Set<T>()) : this._context.Set<T>(),
                 page,
-                10);
+                take);
             return pagination.paginate();
         }
 

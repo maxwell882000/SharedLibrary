@@ -6,16 +6,26 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using SharedLibrary.Helpers;
 using SharedLibrary.Triggers;
+using NetTopologySuite.IO;
+using SharedLibrary.Repositories.Interfaces;
+using SharedLibrary.Repositories.Implementation;
+using SharedLibrary.Models;
 
 namespace SharedLibrary.Extensions.Services;
 
 public static class ServiceExtensions
 {
 
+    public static IServiceCollection AddMedia<Context, T>(this IServiceCollection Services) where Context : DbContext
+        where T : Media
+    {
+        Services.AddTransient(typeof(IMediaRepository<Context, T>), typeof(GenericMediaRepository<Context, T>));
+
+        return Services;
+    }
+
     public static IServiceCollection AddPostgreSQL<T>(this IServiceCollection Services, IConfiguration Configuration) where T : DbContext
     {
-
-
 
         Services.AddDbContext<T>(t =>
             {
@@ -23,7 +33,7 @@ public static class ServiceExtensions
                 t.UseTriggers(triggers =>
                 {
                     triggers.AddTrigger<TimestampTrigger>();
-                    triggers.AddTrigger<OwnershipTrigger>();
+                    // triggers.AddTrigger<OwnershipTrigger>();
                 });
             });
         return Services;
@@ -37,6 +47,9 @@ public static class ServiceExtensions
 
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 x.JsonSerializerOptions.PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance;
+                x.JsonSerializerOptions.Converters.Add(new NetTopologySuite.IO.Converters.GeoJsonConverterFactory());
+
+
             });
 
         return Services;

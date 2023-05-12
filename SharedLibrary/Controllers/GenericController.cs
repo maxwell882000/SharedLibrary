@@ -48,14 +48,7 @@ namespace SharedLibrary.Controllers
 
             return Ok(await Creating(createUser));
         }
-        virtual protected Task<Entity> Creating(CreateEntity create)
-        {
-            return Task.FromResult(_repository.Add<CreateEntity>(_mapper, create));
-        }
-        virtual protected Task<Entity> Updating(UpdateEntity update)
-        {
-            return Task.FromResult(_repository.Update<UpdateEntity>(_mapper, update));
-        }
+
 
 
         [HttpPut("Update")]
@@ -73,12 +66,20 @@ namespace SharedLibrary.Controllers
         }
 
         [HttpDelete("{Id}")]
-        public IActionResult Delete(Entity entity)
+        public IActionResult Delete(long Id)
         {
-            _repository.Remove(entity);
-
+            _repository.Remove(this._repository.GetById(Id));
+            _repository.Commit();
             return Ok();
         }
 
+        virtual protected Task<Entity> Creating(CreateEntity create)
+        {
+            return Task.FromResult(_repository.Add<CreateEntity>(_mapper, create));
+        }
+        virtual protected Task<Entity> Updating(UpdateEntity update)
+        {
+            return Task.FromResult(_repository.Update<UpdateEntity>(_mapper, update));
+        }
     }
 }

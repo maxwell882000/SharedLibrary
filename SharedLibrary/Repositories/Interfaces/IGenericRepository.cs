@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 
 namespace SharedLibrary.Repositories.Interfaces
 {
+
     public interface IGenericRepository<T> where T : class
     {
 
@@ -17,7 +18,7 @@ namespace SharedLibrary.Repositories.Interfaces
         T GetById(long id);
         DbSet<T> GetAll();
 
-        (IQueryable<T>, int) Paginated(int page = 1, int take = 8, Func<DbSet<T>, IQueryable<T>> query = default);
+        (IQueryable<T>, int) Paginated(int page = 1, int take = 8, Func<DbSet<T>, IQueryable<T>>? query = null);
 
         IEnumerable<T> Find(Expression<Func<T, bool>> expression);
         T Add(T entity);
